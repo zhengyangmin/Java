@@ -1,0 +1,251 @@
+package sx_two;
+import java.awt.*;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.Hour;
+import org.jfree.data.time.Minute;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.XYDataset;
+//导入包报错原因及解决方法：https://blog.csdn.net/weixin_39916392/article/details/79982661
+//报告模板：https://www.jianshu.com/p/49fcfb34ee40
+//https://zhidao.baidu.com/question/1451825023195802340.html
+/*
+表现层：包含输入、查询相关的控件以及数据图表的展示（如百分图，折线图）；
+业务逻辑层：数据处理、数据分析（不少于三项统计分析功能）、数据查询；
+数据访问层：负责数据库的访问，主要职责为打开、关闭数据库、构建SQL查询、返回查询结果。
+*/
+
+public class MYGUI extends JFrame {
+	static MYGUI ver=new MYGUI();
+	static Link a=new Link();
+	static ResultSet rs;
+	static String val;
+	static DefaultCategoryDataset mDataset = new DefaultCategoryDataset();
+	public static void main(String[] args) {
+		MYGUI frm=new MYGUI();
+		frm.setBounds(300, 200, 300, 200);
+//		frm.setSize(300, 200);
+		frm.setTitle("数据库连接");
+		// 设置颜色，这里使用RGB三颜色
+		Container c = frm.getContentPane();
+		c.setBackground(new Color(200, 200, 255)); // RGB色
+		frm.setLayout(null);
+		
+		// 创建“用户名： ”标签 
+		JLabel L1 = new JLabel("用户名: ");
+		L1.setBounds(40, 50, 55, 20);
+		
+		//设置此窗体是否可由用户调整大小。
+		frm.setResizable(false);
+		
+		// 创建文本框
+		final JTextField t1 = new JTextField("se",50);
+		t1.setBounds(100, 50, 100, 20);
+		t1.setBackground(new Color(100,200,100));
+		
+		// 创建“密码：”标签		
+		JLabel L2 = new JLabel("密码: ");
+		L2.setBounds(40, 80, 55, 20);
+		
+		//　 创建密码文本框,设置密码文本框的回显字符为"*"
+		final JPasswordField t2 = new JPasswordField("12345678",50);
+		//不设置的话默认为"."
+		t2.setEchoChar('*');
+		t2.setBounds(100, 80, 100, 20);
+		t2.setBackground(Color.ORANGE);
+		// 创建“确定”按钮
+		JButton btn = new JButton("确定");
+//--------------------------------------------------------------		
+		// “确定”按钮获取用户名和密码
+		btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//System.out.println("用户名为");
+				//System.out.println(t1.getText());
+			}
+		});
+//--------------------------------------------------------------		
+		btn.setBounds(40, 110, 80, 30);
+		// 创建“连接”按钮
+		JButton btn2 = new JButton("连接");
+		
+		// “连接”按钮可情况用户名和密码中的文本
+		btn2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//bug:连接数据库失败也会弹出下一个界面
+				a.connect(t1.getText(), t2.getPassword());
+				ver.display();
+			}
+		});
+		
+		btn2.setBounds(130, 110, 80, 30);
+		// 将组件添加到frm中
+		frm.add(t1);
+		frm.add(L1);
+		frm.add(L2);
+		frm.add(t2);
+		frm.add(btn);
+		frm.add(btn2);
+		
+		frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frm.setVisible(true);
+		
+		//ver.playlinkchart();
+		
+	}
+	public void query() {
+		
+	}
+	public void display() {
+		MYGUI frm = new MYGUI();
+		frm.setTitle("新建查询");
+		Container c = frm.getContentPane();
+		c.setBackground(new Color(200, 200, 255)); // RGB色
+		frm.setLayout(null);
+		frm.setBounds(600, 300, 430, 400);
+				
+		JLabel L1 = new JLabel("查询语句为: ");
+		L1.setBounds(0, 10, 80, 20);
+		//select * from gushi_data where "市销率"=4.04
+		JTextField t1 = new JTextField("select \"开盘价(元)\" from gushi_data",100);
+		t1.setBounds(90, 10, 200, 20);
+
+		// 创建文本区组件,10行，30列
+		JTextArea jta = new JTextArea("welcome", 200, 50);
+		//jta.setBackground(Color.ORANGE);
+		JScrollPane jsp = new JScrollPane(jta);
+		jta.setLineWrap(true); // 设置自动换行
+		jsp.setBounds(0, 70, 300, 280);
+        //滚动窗格颜色不太明显
+        jsp.setBackground(Color.RED);
+        
+        JButton btn = new JButton("确定");
+        btn.setBounds(310, 100, 100, 30);
+        btn.addActionListener(new ActionListener() {        	
+			public void actionPerformed(ActionEvent e) {
+				jta.setText("");
+				System.out.println(t1.getText());
+				String query=t1.getText();
+				try {
+					Statement stmt=a.ct.createStatement();
+					stmt.executeQuery(query);
+					//执行sql语句
+					rs=stmt.executeQuery(query);
+					int i=1;
+					while(rs.next()){
+						
+			                val=(rs.getString(1)//+" "+rs.getString(2)+" "+rs.getString(3)
+//			                +" "+rs.getString(4)+" "+rs.getString(5)+" "+rs.getString(6)+" "+rs.getString(7)
+//			                +" "+rs.getString(8)+" "+rs.getString(9)+" "+rs.getString(10)+" "+rs.getString(11)
+//			                +" "+rs.getString(12)+" "+rs.getString(13)+" "+rs.getString(14)
+//			                +" "+rs.getString(15)
+			                +"\n"+"\n");
+			                
+			                double c=Double.valueOf(val.toString());
+			                mDataset.addValue(c, "first", "1"+i);
+			                //System.out.println(val);
+			                i++;
+			                jta.append(val);
+			                //System.out.println(val);
+			            }
+					 System.out.println("查询数据成功");
+			            rs.close();
+			            stmt.close();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}								
+			}
+		});
+        
+        JButton but=new JButton("关闭");
+        but.setBounds(310, 150, 100, 30);
+        but.addActionListener(new ActionListener() {        	
+			public void actionPerformed(ActionEvent e) {
+				try {
+					a.ct.close();
+					jta.setText("");
+					System.out.println("已关闭且清屏");
+					System.exit(0);
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+        
+        JButton bt=new JButton("清屏");
+        bt.setBounds(310, 200, 100, 30);
+        bt.addActionListener(new ActionListener() {        	
+			public void actionPerformed(ActionEvent e) {
+				jta.setText("");
+				System.out.println("清屏完成");
+			}
+        });
+        
+        JButton baa=new JButton("折线图");
+        baa.setBounds(310, 250, 100, 30);
+        baa.addActionListener(new ActionListener() {        	
+			public void actionPerformed(ActionEvent e) {
+				 ver.playlinkchart();
+				System.out.println("OK");
+			}
+        });
+        
+		frm.add(t1);
+		frm.add(L1);
+		frm.add(jsp);
+		frm.add(btn);
+		frm.add(but);
+		frm.add(bt);
+		frm.add(baa);
+		
+		frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frm.setVisible(true);
+	}
+	//list<userVO>
+	public void playlinkchart() {
+		StandardChartTheme mChartTheme = new StandardChartTheme("CN");
+        mChartTheme.setLargeFont(new Font("黑体", Font.BOLD, 20));
+        mChartTheme.setExtraLargeFont(new Font("宋体", Font.PLAIN, 15));
+        mChartTheme.setRegularFont(new Font("宋体", Font.PLAIN, 15));
+        ChartFactory.setChartTheme(mChartTheme);
+//        CategoryDataset mDataset = GetDataset();
+        JFreeChart mChart = ChartFactory.createLineChart(
+                "开盘价",//图名字
+                "年份",//横坐标
+                "开盘价",//纵坐标
+                mDataset,//数据集
+                PlotOrientation.VERTICAL,
+                true, // 显示图例
+                true, // 采用标准生成器
+                false);// 是否生成超链接
+
+        CategoryPlot mPlot = (CategoryPlot)mChart.getPlot();
+        mPlot.setBackgroundPaint(Color.LIGHT_GRAY);
+        mPlot.setRangeGridlinePaint(Color.BLUE);//背景底部横虚线
+        mPlot.setOutlinePaint(Color.RED);//边界线
+
+        ChartFrame mChartFrame = new ChartFrame("折线图", mChart);
+        mChartFrame.pack();
+        mChartFrame.setVisible(true);
+	}
+	
+}
+
